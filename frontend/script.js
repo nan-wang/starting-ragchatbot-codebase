@@ -143,10 +143,15 @@ function addMessage(content, type, sources = null, isWelcome = false) {
             return escapeHtml(source.display_text);
         });
 
+        // Wrap each source in a div for better formatting
+        const formattedSources = sourceElements.map(source =>
+            `<div class="source-item">${source}</div>`
+        ).join('');
+
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sourceElements.join(', ')}</div>
+                <div class="sources-content">${formattedSources}</div>
             </details>
         `;
     }

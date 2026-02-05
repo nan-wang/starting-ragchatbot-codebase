@@ -241,8 +241,29 @@ header h1 {
 }
 
 .sources-content {
-    padding: 0 0.5rem 0.25rem 1.5rem;
+    padding: 0.5rem 0.5rem 0.25rem 1rem;
     color: var(--text-secondary);
+}
+
+/* Individual source item */
+.source-item {
+    margin-bottom: 0.5rem;
+    padding-left: 1rem;
+    position: relative;
+    line-height: 1.5;
+}
+
+.source-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Bullet point before each source */
+.source-item::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--primary-color);
+    font-weight: bold;
 }
 
 /* Source link styling */
@@ -252,11 +273,14 @@ header h1 {
     border-bottom: 1px solid transparent;
     transition: all 0.2s ease;
     cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-block;
 }
 
 .source-link:hover {
     color: #60a5fa; /* Lighter blue on hover */
     border-bottom-color: var(--primary-color);
+    transform: translateX(2px);
 }
 
 .source-link:focus {
