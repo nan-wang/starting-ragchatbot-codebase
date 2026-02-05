@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
-    
+    newChatButton = document.getElementById('newChatButton');
+
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -28,8 +29,12 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
-    
+
+    // New chat button
+    if (newChatButton) {
+        newChatButton.addEventListener('click', handleNewChat);
+    }
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -50,6 +55,9 @@ async function sendMessage() {
     chatInput.value = '';
     chatInput.disabled = true;
     sendButton.disabled = true;
+    if (newChatButton) {
+        newChatButton.disabled = true;
+    }
 
     // Add user message
     addMessage(query, 'user');
@@ -91,6 +99,9 @@ async function sendMessage() {
     } finally {
         chatInput.disabled = false;
         sendButton.disabled = false;
+        if (newChatButton) {
+            newChatButton.disabled = false;
+        }
         chatInput.focus();
     }
 }
@@ -176,6 +187,28 @@ async function createNewSession() {
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+}
+
+// Handle new chat button click with debouncing
+function handleNewChat() {
+    // Disable button during transition to prevent double-clicks
+    if (newChatButton) {
+        newChatButton.disabled = true;
+    }
+
+    // Clear session and UI (reuses existing function)
+    createNewSession();
+
+    // Re-enable button after animation completes
+    setTimeout(() => {
+        if (newChatButton) {
+            newChatButton.disabled = false;
+        }
+        // Focus input for immediate typing
+        if (chatInput) {
+            chatInput.focus();
+        }
+    }, 300); // Matches fadeIn animation duration
 }
 
 // Load course statistics
