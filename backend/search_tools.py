@@ -123,6 +123,56 @@ class CourseSearchTool(Tool):
 
         return "\n\n".join(formatted)
 
+class CourseOutlineTool(Tool):
+    """Tool for retrieving course structure and lesson lists"""
+
+    def __init__(self, vector_store: VectorStore):
+        self.store = vector_store
+
+    def get_tool_definition(self) -> Dict[str, Any]:
+        return {
+            "name": "get_course_outline",
+            "description": "Get the full outline of a course including its title, link, instructor, and complete list of lessons. Use this for questions about course structure, what lessons a course contains, or course overview.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "course_name": {
+                        "type": "string",
+                        "description": "Course title or partial name (e.g. 'MCP', 'Computer Use')"
+                    }
+                },
+                "required": ["course_name"]
+            }
+        }
+
+    def execute(self, course_name: str) -> str:
+        outline = self.store.get_course_outline(course_name)
+        if not outline:
+            return f"No course found matching '{course_name}'."
+        return self._format_outline(outline)
+
+    def _format_outline(self, outline: Dict[str, Any]) -> str:
+        lines = [f"Course: {outline['title']}"]
+        if outline.get('course_link'):
+            lines.append(f"Course Link: {outline['course_link']}")
+        if outline.get('instructor'):
+            lines.append(f"Instructor: {outline['instructor']}")
+        lines.append("")
+
+        lessons = outline.get('lessons', [])
+        lines.append(f"Lessons ({len(lessons)} total):")
+        for lesson in lessons:
+            num = lesson.get('lesson_number', '?')
+            title = lesson.get('lesson_title', 'Untitled')
+            link = lesson.get('lesson_link')
+            entry = f"  - Lesson {num}: {title}"
+            if link:
+                entry += f" ({link})"
+            lines.append(entry)
+
+        return "\n".join(lines)
+
+
 class ToolManager:
     """Manages available tools for the AI"""
     
