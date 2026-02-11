@@ -1,4 +1,5 @@
 """Unit tests for CourseSearchTool"""
+
 import pytest
 from unittest.mock import Mock
 from search_tools import CourseSearchTool
@@ -13,7 +14,7 @@ def test_execute_successful_search_with_results(mock_vector_store):
     mock_vector_store.search.return_value = search_results
     mock_vector_store.get_lesson_link.side_effect = [
         "https://example.com/lesson1",
-        "https://example.com/lesson2"
+        "https://example.com/lesson2",
     ]
 
     tool = CourseSearchTool(mock_vector_store)
@@ -77,9 +78,7 @@ def test_execute_with_course_and_lesson_filters(mock_vector_store):
 
     # Assert
     mock_vector_store.search.assert_called_once_with(
-        query="Tool calling",
-        course_name="MCP",
-        lesson_number=2
+        query="Tool calling", course_name="MCP", lesson_number=2
     )
     assert "Content chunk 0" in result
 
@@ -129,7 +128,7 @@ def test_last_sources_populated_with_lesson_links(mock_vector_store):
     mock_vector_store.get_lesson_link.side_effect = [
         "https://example.com/lesson1",
         None,
-        "https://example.com/lesson3"
+        "https://example.com/lesson3",
     ]
     tool = CourseSearchTool(mock_vector_store)
 

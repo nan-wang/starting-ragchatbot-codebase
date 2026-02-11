@@ -1,4 +1,5 @@
 """Shared pytest fixtures for all tests"""
+
 import pytest
 from unittest.mock import Mock
 from vector_store import SearchResults
@@ -25,17 +26,11 @@ def sample_course():
         course_link="https://example.com/mcp",
         instructor="Dr. Smith",
         lessons=[
+            Lesson(lesson_number=1, title="MCP Basics", lesson_link="https://example.com/lesson1"),
             Lesson(
-                lesson_number=1,
-                title="MCP Basics",
-                lesson_link="https://example.com/lesson1"
+                lesson_number=2, title="Tool Calling", lesson_link="https://example.com/lesson2"
             ),
-            Lesson(
-                lesson_number=2,
-                title="Tool Calling",
-                lesson_link="https://example.com/lesson2"
-            )
-        ]
+        ],
     )
 
 

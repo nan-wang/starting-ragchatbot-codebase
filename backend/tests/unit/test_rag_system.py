@@ -1,4 +1,5 @@
 """Unit tests for RAGSystem integration"""
+
 import pytest
 from unittest.mock import Mock, patch
 from rag_system import RAGSystem
@@ -18,10 +19,12 @@ def test_query_without_session_id(test_config, mocker):
     mock_tool_mgr.get_tool_definitions.return_value = []
     mock_session_mgr.get_conversation_history.return_value = None
 
-    with mocker.patch('rag_system.VectorStore', return_value=mock_vector_store), \
-         mocker.patch('rag_system.AIGenerator', return_value=mock_ai_gen), \
-         mocker.patch('rag_system.SessionManager', return_value=mock_session_mgr), \
-         mocker.patch('rag_system.ToolManager', return_value=mock_tool_mgr):
+    with (
+        mocker.patch("rag_system.VectorStore", return_value=mock_vector_store),
+        mocker.patch("rag_system.AIGenerator", return_value=mock_ai_gen),
+        mocker.patch("rag_system.SessionManager", return_value=mock_session_mgr),
+        mocker.patch("rag_system.ToolManager", return_value=mock_tool_mgr),
+    ):
 
         rag = RAGSystem(test_config)
         response, sources = rag.query("What is MCP?")
@@ -50,10 +53,12 @@ def test_query_with_tool_execution_and_sources(test_config, mocker):
     mock_session_mgr.get_conversation_history.return_value = None
 
     # Patch constructors
-    with mocker.patch('rag_system.VectorStore', return_value=mock_vector_store), \
-         mocker.patch('rag_system.AIGenerator', return_value=mock_ai_gen), \
-         mocker.patch('rag_system.SessionManager', return_value=mock_session_mgr), \
-         mocker.patch('rag_system.ToolManager', return_value=mock_tool_mgr):
+    with (
+        mocker.patch("rag_system.VectorStore", return_value=mock_vector_store),
+        mocker.patch("rag_system.AIGenerator", return_value=mock_ai_gen),
+        mocker.patch("rag_system.SessionManager", return_value=mock_session_mgr),
+        mocker.patch("rag_system.ToolManager", return_value=mock_tool_mgr),
+    ):
 
         rag = RAGSystem(test_config)
         response, sources = rag.query("What is MCP?", session_id="session_1")
@@ -79,15 +84,17 @@ def test_source_lifecycle_management(test_config, mocker):
     mock_ai_gen.generate_response.return_value = "Answer"
     mock_tool_mgr.get_last_sources.side_effect = [
         [{"display_text": "Source 1", "lesson_link": "http://link1"}],
-        []  # Second query has no sources
+        [],  # Second query has no sources
     ]
     mock_tool_mgr.get_tool_definitions.return_value = []
     mock_session_mgr.get_conversation_history.return_value = None
 
-    with mocker.patch('rag_system.VectorStore', return_value=mock_vector_store), \
-         mocker.patch('rag_system.AIGenerator', return_value=mock_ai_gen), \
-         mocker.patch('rag_system.SessionManager', return_value=mock_session_mgr), \
-         mocker.patch('rag_system.ToolManager', return_value=mock_tool_mgr):
+    with (
+        mocker.patch("rag_system.VectorStore", return_value=mock_vector_store),
+        mocker.patch("rag_system.AIGenerator", return_value=mock_ai_gen),
+        mocker.patch("rag_system.SessionManager", return_value=mock_session_mgr),
+        mocker.patch("rag_system.ToolManager", return_value=mock_tool_mgr),
+    ):
 
         rag = RAGSystem(test_config)
 
@@ -117,10 +124,12 @@ def test_query_with_conversation_history(test_config, mocker):
     conversation_history = "User: What is MCP?\nAssistant: MCP is a protocol"
     mock_session_mgr.get_conversation_history.return_value = conversation_history
 
-    with mocker.patch('rag_system.VectorStore', return_value=mock_vector_store), \
-         mocker.patch('rag_system.AIGenerator', return_value=mock_ai_gen), \
-         mocker.patch('rag_system.SessionManager', return_value=mock_session_mgr), \
-         mocker.patch('rag_system.ToolManager', return_value=mock_tool_mgr):
+    with (
+        mocker.patch("rag_system.VectorStore", return_value=mock_vector_store),
+        mocker.patch("rag_system.AIGenerator", return_value=mock_ai_gen),
+        mocker.patch("rag_system.SessionManager", return_value=mock_session_mgr),
+        mocker.patch("rag_system.ToolManager", return_value=mock_tool_mgr),
+    ):
 
         rag = RAGSystem(test_config)
         response, sources = rag.query("Follow up question", session_id="session_1")
@@ -140,10 +149,12 @@ def test_initialization_registers_tools(test_config, mocker):
     mock_session_mgr = Mock()
     mock_tool_mgr = Mock()
 
-    with mocker.patch('rag_system.VectorStore', return_value=mock_vector_store), \
-         mocker.patch('rag_system.AIGenerator', return_value=mock_ai_gen), \
-         mocker.patch('rag_system.SessionManager', return_value=mock_session_mgr), \
-         mocker.patch('rag_system.ToolManager', return_value=mock_tool_mgr):
+    with (
+        mocker.patch("rag_system.VectorStore", return_value=mock_vector_store),
+        mocker.patch("rag_system.AIGenerator", return_value=mock_ai_gen),
+        mocker.patch("rag_system.SessionManager", return_value=mock_session_mgr),
+        mocker.patch("rag_system.ToolManager", return_value=mock_tool_mgr),
+    ):
 
         # Act
         rag = RAGSystem(test_config)

@@ -1,4 +1,5 @@
 """Helper functions to create realistic Anthropic API response mocks"""
+
 from unittest.mock import Mock
 
 

@@ -30,6 +30,21 @@ uv add <package-name>
 # NEVER use pip directly - always use uv
 ```
 
+### Code Quality
+```bash
+# Check formatting (fails if unformatted code found)
+./scripts/quality.sh check
+
+# Auto-format all Python files
+./scripts/quality.sh format
+
+# Or run black directly
+uv run black backend/ main.py
+uv run black --check backend/ main.py
+```
+
+**Formatting**: This project uses [black](https://black.readthedocs.io/) with a line length of 100. Configuration is in `pyproject.toml` under `[tool.black]`. All Python code must pass `black --check` before committing.
+
 ### Environment Setup
 Required `.env` file in root directory:
 ```

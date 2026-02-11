@@ -1,4 +1,5 @@
 """Unit tests for AIGenerator"""
+
 import pytest
 from unittest.mock import Mock, patch
 from ai_generator import AIGenerator
@@ -12,7 +13,7 @@ def test_generate_response_without_tools_returns_direct_answer(mock_anthropic_cl
     text_response = create_text_response("The answer is 42")
     mock_anthropic_client.messages.create.return_value = text_response
 
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
 
         # Act
@@ -28,9 +29,7 @@ def test_generate_response_with_tool_use_triggers_two_phase_flow(mock_anthropic_
     """Test that tool use triggers two-phase API flow"""
     # Arrange
     tool_use_resp = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "What is MCP?"},
-        tool_id="tool_123"
+        tool_name="search_course_content", tool_input={"query": "What is MCP?"}, tool_id="tool_123"
     )
     final_resp = create_text_response("MCP is a protocol for AI systems")
 
@@ -38,25 +37,22 @@ def test_generate_response_with_tool_use_triggers_two_phase_flow(mock_anthropic_
 
     mock_tool_manager = Mock()
     mock_tool_manager.execute_tool.return_value = "Found info about MCP..."
-    mock_tool_manager.get_tool_definitions.return_value = [
-        {"name": "search_course_content"}
-    ]
+    mock_tool_manager.get_tool_definitions.return_value = [{"name": "search_course_content"}]
 
     # Patch Anthropic constructor
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         result = generator.generate_response(
             query="What is MCP?",
             tools=mock_tool_manager.get_tool_definitions(),
-            tool_manager=mock_tool_manager
+            tool_manager=mock_tool_manager,
         )
 
     # Assert
     assert result == "MCP is a protocol for AI systems"
     assert mock_anthropic_client.messages.create.call_count == 2
     mock_tool_manager.execute_tool.assert_called_once_with(
-        "search_course_content",
-        query="What is MCP?"
+        "search_course_content", query="What is MCP?"
     )
 
     # Verify second call DOES have tools parameter (new behavior - tools available until max rounds)
@@ -70,9 +66,7 @@ def test_handle_tool_execution_message_structure(mock_anthropic_client, mocker):
     """Test that tool execution creates correct message structure"""
     # Arrange
     tool_use_resp = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "test"},
-        tool_id="tool_abc123"
+        tool_name="search_course_content", tool_input={"query": "test"}, tool_id="tool_abc123"
     )
     final_resp = create_text_response("Final answer")
 
@@ -82,12 +76,12 @@ def test_handle_tool_execution_message_structure(mock_anthropic_client, mocker):
     mock_tool_manager.execute_tool.return_value = "Tool output string"
     mock_tool_manager.get_tool_definitions.return_value = [{"name": "search_course_content"}]
 
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         generator.generate_response(
             query="test",
             tools=mock_tool_manager.get_tool_definitions(),
-            tool_manager=mock_tool_manager
+            tool_manager=mock_tool_manager,
         )
 
     # Assert - check the second API call structure
@@ -117,11 +111,10 @@ def test_conversation_history_injected_into_system_prompt(mock_anthropic_client,
 
     conversation_history = "User: Hi\nAssistant: Hello"
 
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         generator.generate_response(
-            query="Follow up question",
-            conversation_history=conversation_history
+            query="Follow up question", conversation_history=conversation_history
         )
 
     # Assert - check system prompt includes history
@@ -139,7 +132,7 @@ def test_temperature_set_to_zero(mock_anthropic_client, mocker):
     text_response = create_text_response("Response")
     mock_anthropic_client.messages.create.return_value = text_response
 
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         generator.generate_response(query="Test")
 
@@ -158,13 +151,9 @@ def test_tool_choice_auto_when_tools_provided(mock_anthropic_client, mocker):
     mock_tool_manager = Mock()
     tools = [{"name": "search_course_content"}]
 
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
-        generator.generate_response(
-            query="Test",
-            tools=tools,
-            tool_manager=mock_tool_manager
-        )
+        generator.generate_response(query="Test", tools=tools, tool_manager=mock_tool_manager)
 
     # Assert
     call_kwargs = mock_anthropic_client.messages.create.call_args[1]
@@ -177,43 +166,38 @@ def test_sequential_tool_calls_two_rounds(mock_anthropic_client, mocker):
     """Test that system supports 2 sequential tool calls"""
     # Arrange - 3 API responses
     outline_tool_use = create_tool_use_response(
-        tool_name="get_course_outline",
-        tool_input={"course_name": "MCP"},
-        tool_id="tool_001"
+        tool_name="get_course_outline", tool_input={"course_name": "MCP"}, tool_id="tool_001"
     )
 
     search_tool_use = create_tool_use_response(
         tool_name="search_course_content",
         tool_input={"query": "server implementation", "course_name": "MCP"},
-        tool_id="tool_002"
+        tool_id="tool_002",
     )
 
     final_text_resp = create_text_response("The MCP course covers...")
 
     mock_anthropic_client.messages.create.side_effect = [
-        outline_tool_use,    # Initial: Claude wants outline
-        search_tool_use,     # After outline: Claude wants search
-        final_text_resp      # After search: Claude synthesizes answer
+        outline_tool_use,  # Initial: Claude wants outline
+        search_tool_use,  # After outline: Claude wants search
+        final_text_resp,  # After search: Claude synthesizes answer
     ]
 
     # Tool manager returns results for both calls
     mock_tool_manager = Mock()
     mock_tool_manager.execute_tool.side_effect = [
         "Course outline data...",
-        "Server implementation info..."
+        "Server implementation info...",
     ]
-    tools = [
-        {"name": "get_course_outline"},
-        {"name": "search_course_content"}
-    ]
+    tools = [{"name": "get_course_outline"}, {"name": "search_course_content"}]
 
     # Act
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         result = generator.generate_response(
             query="What does MCP teach about server implementation?",
             tools=tools,
-            tool_manager=mock_tool_manager
+            tool_manager=mock_tool_manager,
         )
 
     # Assert external behavior
@@ -242,9 +226,7 @@ def test_single_tool_call_terminates_early(mock_anthropic_client, mocker):
     """Test that single tool call behaves identically to current (backwards compatibility)"""
     # Arrange - Claude makes 1 tool call then returns text
     tool_use_resp = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "What is MCP?"},
-        tool_id="tool_123"
+        tool_name="search_course_content", tool_input={"query": "What is MCP?"}, tool_id="tool_123"
     )
     final_resp = create_text_response("MCP is a protocol...")
 
@@ -255,12 +237,10 @@ def test_single_tool_call_terminates_early(mock_anthropic_client, mocker):
     tools = [{"name": "search_course_content"}]
 
     # Act
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         result = generator.generate_response(
-            query="What is MCP?",
-            tools=tools,
-            tool_manager=mock_tool_manager
+            query="What is MCP?", tools=tools, tool_manager=mock_tool_manager
         )
 
     # Assert - should be 2 API calls (initial + follow-up)
@@ -278,27 +258,21 @@ def test_max_tool_rounds_enforced(mock_anthropic_client, mocker):
     """Test that round limit stops after 2 rounds even if Claude wants more"""
     # Arrange - Claude wants 3 tool calls but should be stopped at 2
     tool_use_1 = create_tool_use_response(
-        tool_name="get_course_outline",
-        tool_input={"course_name": "MCP"},
-        tool_id="tool_001"
+        tool_name="get_course_outline", tool_input={"course_name": "MCP"}, tool_id="tool_001"
     )
 
     tool_use_2 = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "test"},
-        tool_id="tool_002"
+        tool_name="search_course_content", tool_input={"query": "test"}, tool_id="tool_002"
     )
 
     tool_use_3 = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "another test"},
-        tool_id="tool_003"
+        tool_name="search_course_content", tool_input={"query": "another test"}, tool_id="tool_003"
     )
 
     mock_anthropic_client.messages.create.side_effect = [
         tool_use_1,
         tool_use_2,
-        tool_use_3  # This should be the final response (round limit reached)
+        tool_use_3,  # This should be the final response (round limit reached)
     ]
 
     mock_tool_manager = Mock()
@@ -306,12 +280,10 @@ def test_max_tool_rounds_enforced(mock_anthropic_client, mocker):
     tools = [{"name": "get_course_outline"}, {"name": "search_course_content"}]
 
     # Act
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         result = generator.generate_response(
-            query="Test query",
-            tools=tools,
-            tool_manager=mock_tool_manager
+            query="Test query", tools=tools, tool_manager=mock_tool_manager
         )
 
     # Assert - should stop after 2 rounds (3 API calls)
@@ -326,9 +298,7 @@ def test_tool_execution_error_returns_to_claude(mock_anthropic_client, mocker):
     """Test that tool execution errors are passed to Claude as tool_result"""
     # Arrange
     tool_use_resp = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "test"},
-        tool_id="tool_123"
+        tool_name="search_course_content", tool_input={"query": "test"}, tool_id="tool_123"
     )
     final_resp = create_text_response("I apologize, the search failed")
 
@@ -340,12 +310,10 @@ def test_tool_execution_error_returns_to_claude(mock_anthropic_client, mocker):
     tools = [{"name": "search_course_content"}]
 
     # Act
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         result = generator.generate_response(
-            query="Test query",
-            tools=tools,
-            tool_manager=mock_tool_manager
+            query="Test query", tools=tools, tool_manager=mock_tool_manager
         )
 
     # Assert - error was passed to Claude
@@ -373,9 +341,7 @@ def test_terminates_when_no_tool_use(mock_anthropic_client, mocker):
     """Test that loop terminates when Claude returns text (no tool_use)"""
     # Arrange - Claude returns text directly on second response
     tool_use_resp = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "test"},
-        tool_id="tool_123"
+        tool_name="search_course_content", tool_input={"query": "test"}, tool_id="tool_123"
     )
     # Second response is text, not tool_use
     final_resp = create_text_response("Here is the answer", stop_reason="end_turn")
@@ -387,12 +353,10 @@ def test_terminates_when_no_tool_use(mock_anthropic_client, mocker):
     tools = [{"name": "search_course_content"}]
 
     # Act
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
         result = generator.generate_response(
-            query="Test query",
-            tools=tools,
-            tool_manager=mock_tool_manager
+            query="Test query", tools=tools, tool_manager=mock_tool_manager
         )
 
     # Assert - should terminate after 2 API calls
@@ -406,37 +370,25 @@ def test_message_accumulation_across_rounds(mock_anthropic_client, mocker):
     """Test that message history grows correctly across multiple rounds"""
     # Arrange
     tool_use_1 = create_tool_use_response(
-        tool_name="get_course_outline",
-        tool_input={"course_name": "MCP"},
-        tool_id="tool_001"
+        tool_name="get_course_outline", tool_input={"course_name": "MCP"}, tool_id="tool_001"
     )
 
     tool_use_2 = create_tool_use_response(
-        tool_name="search_course_content",
-        tool_input={"query": "server"},
-        tool_id="tool_002"
+        tool_name="search_course_content", tool_input={"query": "server"}, tool_id="tool_002"
     )
 
     final_resp = create_text_response("Final answer")
 
-    mock_anthropic_client.messages.create.side_effect = [
-        tool_use_1,
-        tool_use_2,
-        final_resp
-    ]
+    mock_anthropic_client.messages.create.side_effect = [tool_use_1, tool_use_2, final_resp]
 
     mock_tool_manager = Mock()
     mock_tool_manager.execute_tool.side_effect = ["Outline...", "Search results..."]
     tools = [{"name": "get_course_outline"}, {"name": "search_course_content"}]
 
     # Act
-    with mocker.patch('ai_generator.anthropic.Anthropic', return_value=mock_anthropic_client):
+    with mocker.patch("ai_generator.anthropic.Anthropic", return_value=mock_anthropic_client):
         generator = AIGenerator(api_key="test-key", model="claude-sonnet-4")
-        generator.generate_response(
-            query="Test query",
-            tools=tools,
-            tool_manager=mock_tool_manager
-        )
+        generator.generate_response(query="Test query", tools=tools, tool_manager=mock_tool_manager)
 
     # Assert - verify message structure in final call
     final_call = mock_anthropic_client.messages.create.call_args_list[2]
