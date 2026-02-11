@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton, themeToggle;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
     newChatButton = document.getElementById('newChatButton');
+    themeToggle = document.getElementById('themeToggle');
 
+    initTheme();
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -33,6 +35,11 @@ function setupEventListeners() {
     // New chat button
     if (newChatButton) {
         newChatButton.addEventListener('click', handleNewChat);
+    }
+
+    // Theme toggle
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
     }
 
     // Suggested questions
@@ -209,6 +216,38 @@ function handleNewChat() {
             chatInput.focus();
         }
     }, 300); // Matches fadeIn animation duration
+}
+
+// Theme Functions
+function initTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+        setTheme(saved);
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        setTheme('light');
+    }
+    // Default is dark (no data-theme attribute needed)
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('theme', next);
+}
+
+function setTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    // Update aria-label for accessibility
+    if (themeToggle) {
+        themeToggle.setAttribute('aria-label',
+            theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+        );
+    }
 }
 
 // Load course statistics
