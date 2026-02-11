@@ -3,7 +3,7 @@ name = "starting-codebase"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "chromadb==1.0.15",
     "anthropic==0.58.2",
@@ -12,4 +12,24 @@ dependencies = [
     "uvicorn==0.35.0",
     "python-multipart==0.0.20",
     "python-dotenv==1.1.1",
+    "numpy<2",
+    "httpx[socks]>=0.28.1",
 ]
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.2",
+    "pytest-cov==5.0.0",
+    "pytest-mock==3.14.0",
+    "black>=24.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = '\.pyi?$'

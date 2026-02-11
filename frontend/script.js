@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton, themeToggle;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
-    
+    newChatButton = document.getElementById('newChatButton');
+    themeToggle = document.getElementById('themeToggle');
+
+    initTheme();
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -28,8 +31,17 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
-    
+
+    // New chat button
+    if (newChatButton) {
+        newChatButton.addEventListener('click', handleNewChat);
+    }
+
+    // Theme toggle
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -50,6 +62,9 @@ async function sendMessage() {
     chatInput.value = '';
     chatInput.disabled = true;
     sendButton.disabled = true;
+    if (newChatButton) {
+        newChatButton.disabled = true;
+    }
 
     // Add user message
     addMessage(query, 'user');
@@ -91,6 +106,9 @@ async function sendMessage() {
     } finally {
         chatInput.disabled = false;
         sendButton.disabled = false;
+        if (newChatButton) {
+            newChatButton.disabled = false;
+        }
         chatInput.focus();
     }
 }
@@ -122,10 +140,36 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        // Map sources to HTML elements
+        const sourceElements = sources.map(source => {
+            // Handle backward compatibility for string sources
+            if (typeof source === 'string') {
+                return escapeHtml(source);
+            }
+
+            // Render with link if available
+            if (source.lesson_link) {
+                return `<a href="${escapeHtml(source.lesson_link)}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="source-link">
+                          ${escapeHtml(source.display_text)}
+                        </a>`;
+            }
+
+            // No link - render as plain text
+            return escapeHtml(source.display_text);
+        });
+
+        // Wrap each source in a div for better formatting
+        const formattedSources = sourceElements.map(source =>
+            `<div class="source-item">${source}</div>`
+        ).join('');
+
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${formattedSources}</div>
             </details>
         `;
     }
@@ -150,6 +194,60 @@ async function createNewSession() {
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+}
+
+// Handle new chat button click with debouncing
+function handleNewChat() {
+    // Disable button during transition to prevent double-clicks
+    if (newChatButton) {
+        newChatButton.disabled = true;
+    }
+
+    // Clear session and UI (reuses existing function)
+    createNewSession();
+
+    // Re-enable button after animation completes
+    setTimeout(() => {
+        if (newChatButton) {
+            newChatButton.disabled = false;
+        }
+        // Focus input for immediate typing
+        if (chatInput) {
+            chatInput.focus();
+        }
+    }, 300); // Matches fadeIn animation duration
+}
+
+// Theme Functions
+function initTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+        setTheme(saved);
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        setTheme('light');
+    }
+    // Default is dark (no data-theme attribute needed)
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('theme', next);
+}
+
+function setTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    // Update aria-label for accessibility
+    if (themeToggle) {
+        themeToggle.setAttribute('aria-label',
+            theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+        );
+    }
 }
 
 // Load course statistics
